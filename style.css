@@ -420,24 +420,26 @@ button:active {
     /* Mobile Modal Fixes */
     .secret-message {
         width: 85%;
-        max-width: 350px;
-        padding: 30px 20px;
+        max-width: 320px;
+        padding: 25px 20px 40px 20px;
+        /* Extra bottom padding for scroll/footer safety */
         border-radius: 20px;
-        max-height: 85vh;
-        /* Ensure it fits vertically */
+        max-height: 80vh;
         overflow-y: auto;
-        /* Scrollable if too tall */
+        z-index: 2000;
+        /* Ensure above footer */
     }
 
     .secret-message h1 {
-        font-size: 2rem;
-        margin-bottom: 16px;
+        font-size: 1.8rem;
+        margin-bottom: 12px;
     }
 
     .secret-message p {
-        font-size: 1rem;
-        margin-bottom: 24px;
-        line-height: 1.4;
+        font-size: 0.95rem;
+        /* Slightly smaller text */
+        margin-bottom: 20px;
+        line-height: 1.5;
     }
 
     .action-buttons {
