@@ -321,7 +321,7 @@ button:active {
 
 /* Mobile Header (Hidden on Desktop) */
 #mobile-header {
-    display: none;
+    display: none !important;
     position: fixed;
     top: 0;
     left: 0;
@@ -360,9 +360,9 @@ button:active {
 }
 
 /* Mobile Tweaks */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
     #mobile-header {
-        display: flex;
+        display: flex !important;
     }
 
     #ui-container {
