@@ -835,6 +835,24 @@ function setupUI() {
         });
     });
 
+    // Mobile Menu Toggle
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const uiContainer = document.getElementById('ui-container');
+
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', () => {
+            uiContainer.classList.toggle('mobile-menu-open');
+        });
+
+        // Close when clicking outside (on canvas) if open
+        const canvas = document.querySelector('canvas');
+        canvas.addEventListener('click', () => {
+            if (uiContainer.classList.contains('mobile-menu-open')) {
+                uiContainer.classList.remove('mobile-menu-open');
+            }
+        });
+    }
+
     // Color
     const colorInput = document.getElementById('particle-color');
     colorInput.addEventListener('input', (e) => {
