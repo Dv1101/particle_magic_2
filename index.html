@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand-Controlled Particle Playground</title>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- MediaPipe -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div id="loader">
+        <div class="spinner"></div>
+        <p>Loading models...</p>
+    </div>
+
+    <div id="ui-container">
+        <!-- Header / Status -->
+        <div class="panel" id="status-panel">
+            <h1>Particle Magic</h1>
+            <div class="status-indicator">
+                <span id="cam-status-dot" class="dot"></span>
+                <span id="cam-status-text">Camera Off</span>
+            </div>
+            <button id="toggle-cam-btn" class="btn-primary">Enable Camera</button>
+            <button id="help-btn" class="btn-secondary" style="margin-top:0; width:auto; padding: 5px 12px;">?</button>
+        </div>
+
+        <!-- Controls -->
+        <div class="panel" id="controls-panel">
+            <div class="control-group">
+                <label>Color <span id="color-preview"></span></label>
+                <input type="color" id="particle-color" value="#817936">
+            </div>
+
+            <div class="control-group">
+                <label>Count</label>
+                <input type="range" id="particle-count" min="1000" max="20000" step="1000" value="10000">
+            </div>
+
+            <div class="control-group">
+                <label>Size</label>
+                <input type="range" id="particle-size" min="0.1" max="5.0" step="0.1" value="1.0">
+            </div>
+
+            <div class="control-group">
+                <label>Noise/Chaos</label>
+                <input type="range" id="motion-noise" min="0" max="1" step="0.01" value="0.2">
+            </div>
+
+            <div class="control-group">
+                <label>Interaction</label>
+                <div class="toggle-wrapper">
+                    <span class="label-small">Mouse</span>
+                    <label class="switch">
+                        <input type="checkbox" id="input-mode-toggle" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="label-small">Hands</span>
+                </div>
+            </div>
+
+            <button id="screenshot-btn" class="btn-secondary">📸 Snap</button>
+        </div>
+    </div>
+
+    <!-- Template Selector (Bottom) -->
+    <div id="template-dock">
+        <button class="template-btn" data-shape="heart">❤️ Heart</button>
+        <button class="template-btn active" data-shape="flower">🌸 Flower</button>
+        <button class="template-btn" data-shape="saturn">🪐 Saturn</button>
+        <button class="template-btn" data-shape="buddha">🧘 Buddha</button>
+        <button class="template-btn" data-shape="fireworks">🎆 Fireworks</button>
+        <button class="template-btn" data-shape="galaxy" id="special-secret-btn">🌌 Special Secret</button>
+    </div>
+
+    <!-- Instructions / Readme Modal -->
+    <div id="instructions">
+        <h3>How to Play</h3>
+        <ul>
+            <li><strong>Close Hands / Fists:</strong> Contract particles.</li>
+            <li><strong>Open Hands:</strong> Expand/Spread particles.</li>
+            <li><strong>Move Hand Position:</strong> Move the particle cluster (in Special Secret mode).</li>
+            <li><strong>Move Hands Apart:</strong> Scale up the whole scene.</li>
+            <li><strong>Snap Fingers:</strong> Trigger fireworks (in Fireworks mode).</li>
+            <li><strong>Secret Message:</strong> Play with camera to unlock secret message.</li>
+            <li><strong>Bonous Feature:</strong> After Secret Message Game all shape will beat.</li>
+        </ul>
+        <button id="close-instructions">Got it</button>
+    </div>
+
+    <!-- Hidden Video Element for MediaPipe -->
+    <video class="input_video" style="display:none"></video>
+
+    <!-- Game Intro Modal -->
+    <div id="game-intro-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>🌌 Secret Galaxy Mission</h2>
+            <p>To win this game, you must control the galaxy!</p>
+            <ul style="text-align: left; margin-left: 10%;">
+                <li>✊ <strong>Close your hand (Fist)</strong> to grab the galaxy.</li>
+                <li>🖐️ <strong>Move your hand</strong> to guide the green particles.</li>
+                <li>🎯 <strong>Hold</strong> your fist over the blue targets to charge them!</li>
+            </ul>
+            <button id="start-game-btn" class="btn-primary">Ready! Start Mission</button>
+        </div>
+    </div>
+
+    <!-- Game UI -->
+    <div id="game-ui" style="display: none;">
+        <div id="target-point" class="target-point">
+            <div id="target-progress"></div>
+        </div>
+        <div id="secret-message" class="secret-message">
+            <h1 id="msg-title"></h1>
+            <p id="msg-body"></p>
+            <p id="msg-sig"></p>
+            <div class="action-buttons">
+                <button id="replay-btn">Replay</button>
+                <button id="info-btn">ℹ️ Info about </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Modal -->
+    <div id="info-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Magic Stats about my code🪄</h2>
+            <ul id="magic-stats">
+                <li>Active Particles: <span id="stat-particles"></span></li>
+                <li>Total Code Lines: ~2000</li>
+                <li>Maths Formulas: Sin, Cos, Perlin Noise</li>
+                <li>Tech: Three.js + WebGL</li>
+                <li id="locked-message-container" class="locked-item">
+                    <span id="locked-text"></span>
+                    <div id="locked-timer" class="timer-text"></div>
+                </li>
+            </ul>
+            <div class="divider"></div>
+            <p class="developer-credit">Developed by <strong>Dvinfotech</strong><br>@ Dhruv Varia 🪽 2025</p>
+            <button id="close-info-btn">Close</button>
+        </div>
+    </div>
+
+    <!-- Main Canvas -->
+    <canvas id="output_canvas"></canvas>
+
+    <script src="script.js"></script>
+    <!-- Footer -->
+    <div id="app-footer">
+        Dhruv Varia @ <span class="highlight">DvInfotech</span>
+    </div>
+</body>
+
+</html>
