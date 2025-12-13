@@ -2,7 +2,7 @@
 const CONFIG = {
     particleCount: 20000,
     particleSize: 0.4,
-    baseColor: new THREE.Color("rgb(129, 121, 54)"),
+    baseColor: new THREE.Color("rgba(197, 179, 17, 1)"),
     noiseStrength: 1,
     lerpSpeed: 0.05,
     cameraEnabled: false
